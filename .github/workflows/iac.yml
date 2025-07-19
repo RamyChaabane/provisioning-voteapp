@@ -6,27 +6,39 @@ on:
       - 'terraform/**'
       - '.github/workflows/iac.yml'
 
+env:
+  TF_VAR_access_key: ${{ secrets.SCW_ACCESS_KEY }}
+  TF_VAR_secret_key: ${{ secrets.SCW_SECRET_KEY }}
+  TF_VAR_project_id: ${{ secrets.SCW_PROJECT_ID }}
+  TF_VAR_default_access_key: ${{ secrets.DEFAULT_SCW_ACCESS_KEY }}
+  TF_VAR_default_secret_key: ${{ secrets.DEFAULT_SCW_SECRET_KEY }}
+  TF_VAR_default_project_id: ${{ secrets.DEFAULT_SCW_PROJECT_ID }}
+  TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
+
 jobs:
-  terraform:
-    name: Provision Infrastructure
+  format:
+    name: Terraform Format Check
     runs-on: ubuntu-latest
-
-    env:
-      TF_VAR_access_key: ${{ secrets.SCW_ACCESS_KEY }}
-      TF_VAR_secret_key: ${{ secrets.SCW_SECRET_KEY }}
-      TF_VAR_project_id: ${{ secrets.SCW_PROJECT_ID }}
-      TF_VAR_default_access_key: ${{ secrets.DEFAULT_SCW_ACCESS_KEY }}
-      TF_VAR_default_secret_key: ${{ secrets.DEFAULT_SCW_SECRET_KEY }}
-      TF_VAR_default_project_id: ${{ secrets.DEFAULT_SCW_PROJECT_ID }}
-      TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
-
     defaults:
       run:
         working-directory: terraform
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Run terraform fmt -recursive
+        run: terraform fmt -recursive -check -diff
+
+  validate:
+    name: Terraform Validate
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: terraform
+    steps:
+      - uses: actions/checkout@v4
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
@@ -37,9 +49,41 @@ jobs:
       - name: Terraform Validate
         run: terraform validate
 
+  plan:
+    name: Terraform Plan
+    runs-on: ubuntu-latest
+    needs: [format, validate]
+    defaults:
+      run:
+        working-directory: terraform
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: terraform init
+
       - name: Terraform Plan
         run: terraform plan
 
+  apply:
+    name: Terraform Apply
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    needs: plan
+    defaults:
+      run:
+        working-directory: terraform
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: terraform init
+
       - name: Terraform Apply
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: terraform apply -auto-approve
