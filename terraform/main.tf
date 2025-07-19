@@ -18,12 +18,17 @@ module "bootstrap" {
   default_project_id = var.default_project_id
 }
 
+locals {
+  argocd_repo_url = "https://github.com/RamyChaabane/argocd-voteapp"
+}
+
 module "vote-app-dev" {
   source = "./modules/argocd"
 
   destination_namespace = "vote-dev"
   name                  = "vote-app-dev"
   path                  = "k8s/overlays/dev"
+  repo_url              = local.argocd_repo_url
   argocd_server_addr    = module.bootstrap.argocd_server_addr
   argocd_admin_password = module.bootstrap.argocd_admin_password
 }
@@ -34,6 +39,7 @@ module "vote-app-stg" {
   destination_namespace = "vote-stg"
   name                  = "vote-app-stg"
   path                  = "k8s/overlays/stg"
+  repo_url              = local.argocd_repo_url
   argocd_server_addr    = module.bootstrap.argocd_server_addr
   argocd_admin_password = module.bootstrap.argocd_admin_password
 }
@@ -44,6 +50,7 @@ module "vote-app-prd" {
   destination_namespace = "vote-prd"
   name                  = "vote-app-prd"
   path                  = "k8s/overlays/prd"
+  repo_url              = local.argocd_repo_url
   argocd_server_addr    = module.bootstrap.argocd_server_addr
   argocd_admin_password = module.bootstrap.argocd_admin_password
 }
@@ -54,6 +61,7 @@ module "monitoring" {
   destination_namespace = "monitoring"
   name                  = "monitoring-stack"
   path                  = "monitoring"
+  repo_url              = local.argocd_repo_url
   argocd_server_addr    = module.bootstrap.argocd_server_addr
   argocd_admin_password = module.bootstrap.argocd_admin_password
 }

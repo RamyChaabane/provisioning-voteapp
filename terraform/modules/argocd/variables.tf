@@ -30,7 +30,6 @@ variable "project" {
 
 variable "repo_url" {
   description = "github repo url"
-  default     = "https://github.com/RamyChaabane/VoteApp"
 }
 variable "revision" {
   description = "target branch"
