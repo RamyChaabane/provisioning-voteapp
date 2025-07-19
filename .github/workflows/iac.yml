@@ -1,0 +1,45 @@
+name: Terraform Provision To Scaleway
+
+on:
+  push:
+    paths:
+      - 'terraform/**'
+      - '.github/workflows/iac.yml'
+
+jobs:
+  terraform:
+    name: Provision Infrastructure
+    runs-on: ubuntu-latest
+
+    env:
+      TF_VAR_access_key: ${{ secrets.SCW_ACCESS_KEY }}
+      TF_VAR_secret_key: ${{ secrets.SCW_SECRET_KEY }}
+      TF_VAR_project_id: ${{ secrets.SCW_PROJECT_ID }}
+      TF_VAR_default_access_key: ${{ secrets.DEFAULT_SCW_ACCESS_KEY }}
+      TF_VAR_default_secret_key: ${{ secrets.DEFAULT_SCW_SECRET_KEY }}
+      TF_VAR_default_project_id: ${{ secrets.DEFAULT_SCW_PROJECT_ID }}
+      TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
+
+    defaults:
+      run:
+        working-directory: terraform
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        run: terraform plan
+
+      - name: Terraform Apply
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: terraform apply -auto-approve
