@@ -72,10 +72,10 @@ This repository uses Terraform Cloud for remote state storage and locking, which
 - Centralized State Storage – No local state files to lose or corrupt. 
 - Concurrency Control – Prevents multiple people from making conflicting changes. 
 - Version History – Tracks all state changes over time.
+- Secure Storage – Protects sensitive outputs from leaking.
 
-Secure Storage – Protects sensitive outputs from leaking.
 ---
-#📜 Example Workflow
+## 📜 Example Workflow
 ```bash
 # Initialize Terraform with remote backend in Terraform Cloud
 terraform init
@@ -86,7 +86,7 @@ terraform plan
 # Apply infrastructure changes
 terraform apply
 ```
-
+---
 ## 🚩 Troubleshooting pointers
 - If Argo CD reports CRDs missing during manifest apply, ensure CRDs are created first (apply CRDs or deploy Helm chart that includes them prior to resources relying on them). 
 - For provider-specific auth errors, verify environment variables/TF_VAR_* are set in the workflow runner.
